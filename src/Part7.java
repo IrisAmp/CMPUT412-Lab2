@@ -1,10 +1,10 @@
 
-public class Part4 
+public class Part7 
 {
 	public static void main(String[] args)
 	{
 		RobotArm arm = new RobotArm();	
-		arm.turnDegrees(90, -45);
+		arm.getMidPoints();
 		arm.finish();
 	}
 }
