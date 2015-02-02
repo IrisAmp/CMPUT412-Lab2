@@ -195,26 +195,19 @@ public class RobotArm
 		double[] ithetas = getAngles(ix,iy);
 		double ang1=ithetas[0];
 		double ang2=ithetas[1];
-		//moveSameTime(ang1,ang2);
-
+		moveSameTime(ang1,ang2);
 		
-		double[] fthetas = getAngles(fx,fy);
-		moveSameTime(fthetas[0],fthetas[1]);
-		System.out.println("x"+fthetas[0]);
-		System.out.println("y"+fthetas[1]);
+		double points = 10.;
+		double incx=(fx-ix)/points;
+		double incy=(fy-iy)/points;
 		
-		
-//		double points = 10.;
-//		double incx=(fx-ix)/points;
-//		double incy=(fy-iy)/points;
-//		
-//		for (double n=0;n<points;n++){
-//			double[] fthetas = getAngles(ix+incx*(n+1.),iy+incy*(n+1.));
-//			//moveSameTime(fthetas[0]-ang1,fthetas[1]-ang2);
-//			moveSameTime(fthetas[0],fthetas[1]);
-//			ang1 = fthetas[0];
-//			ang2 = fthetas[1];
-//		}
+		for (double n=0;n<points;n++){
+			double[] fthetas = getAngles(ix+incx*(n+1.),iy+incy*(n+1.));
+			//moveSameTime(fthetas[0]-ang1,fthetas[1]-ang2);
+			moveSameTime(fthetas[0],fthetas[1]);
+			ang1 = fthetas[0];
+			ang2 = fthetas[1];
+		}
 		
 	}
 	
@@ -228,9 +221,26 @@ public class RobotArm
 		drawLine(ix, iy, fx, fy);		
 	}
 	
+	public void drawArc(double x,double y,double r, double rd, double p){
+		double maxAngle=360/rd;
+
+		double initAngle=-maxAngle/2;
+		double endAngle=-initAngle;
+		
+		double maxStep = initAngle<endAngle ? p : -p;
+		
+		for (double angle = initAngle; Math.abs(angle) < Math.abs(endAngle);angle+=maxStep){
+			double dx=x+r*Math.cos(angle*CONVERT);
+			double dy=y+r*Math.sin(angle*CONVERT);
+			double[] ithetas = getAngles(dx,dy);
+			moveSameTime(ithetas[0],ithetas[1]);
+		}
+	
+	}
+	
 	public void moveSameTime(double angle1, double angle2) {
 		
-		double relation = angle1/angle2;
+		double relation = 1;//angle1/angle2;
 		if (relation > 4)
 			theta1.setSpeed(100);
 		else
