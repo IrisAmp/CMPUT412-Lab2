@@ -5,7 +5,7 @@ import lejos.hardware.port.MotorPort;
 public class RobotArm 
 {
 	public static final double L1 = 13.5; // cm
-	public static final double L2 = 14.2; // cm
+	public static final double L2 = 17.2; // cm
 	public static final double CONVERT = Math.PI / 180.0;
 
 	EV3MediumRegulatedMotor theta1;
@@ -19,6 +19,7 @@ public class RobotArm
 	public void finish(){
 		theta1.close();
 		theta2.close();
+		System.out.println("Finished");
 		Button.waitForAnyPress();
 	}
 	
@@ -228,8 +229,7 @@ public class RobotArm
 		double endAngle=-initAngle;
 		
 		double maxStep = initAngle<endAngle ? p : -p;
-		
-		for (double angle = initAngle; Math.abs(angle) < Math.abs(endAngle);angle+=maxStep){
+		for (double angle = initAngle; Math.abs(angle)-1 < Math.abs(endAngle);angle+=maxStep){
 			double dx=x+r*Math.cos(angle*CONVERT);
 			double dy=y+r*Math.sin(angle*CONVERT);
 			double[] ithetas = getAngles(dx,dy);
