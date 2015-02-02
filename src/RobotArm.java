@@ -93,11 +93,11 @@ public class RobotArm
 	public void reverseKinematics(double x, double y)
 	{
 		double D = ((x*x) + (y*y) - (L1*L1) - (L2*L2)) / (2 *L1 * L2);
-		double theta2_a = Math.atan((Math.sqrt(1 - (D*D)))/D);
-		double theta2_b = Math.atan(-(Math.sqrt(1 - (D*D)))/D);
+		double theta2_a = Math.atan2((Math.sqrt(1 - (D*D))),D);
+		double theta2_b = Math.atan2(-(Math.sqrt(1 - (D*D))),D);
 		
-		double theta1_a = Math.atan2(y, x) - Math.atan((L2 * Math.sin(theta2_a)) / (L1 + (L2 * Math.cos(theta2_a))));
-		double theta1_b = Math.atan2(y, x) - Math.atan((L2 * Math.sin(theta2_b)) / (L1 + (L2 * Math.cos(theta2_b))));
+		double theta1_a = Math.atan2(y, x) - Math.atan2((L2 * Math.sin(theta2_a)) , (L1 + (L2 * Math.cos(theta2_a))));
+		double theta1_b = Math.atan2(y, x) - Math.atan2((L2 * Math.sin(theta2_b)) , (L1 + (L2 * Math.cos(theta2_b))));
 		
 		System.out.printf("Solution 1:\ntheta1 = %5f\ntheta2=%5f\n", theta1_a / CONVERT, theta2_a / CONVERT);
 		System.out.printf("Solution 2:\ntheta1 = %5f\ntheta2=%5f\n", theta1_b / CONVERT, theta2_b / CONVERT);
@@ -172,11 +172,11 @@ public class RobotArm
 	public double[] getAngles(double x, double y)
 	{
 		double D = ((x*x) + (y*y) - (L1*L1) - (L2*L2)) / (2 *L1 * L2);
-		double theta2_a = Math.atan(Math.sqrt(1 - (D*D))/D);
-		double theta2_b = Math.atan(-Math.sqrt(1 - (D*D))/D);
+		double theta2_a = Math.atan2(Math.sqrt(1 - (D*D)),D);
+		double theta2_b = Math.atan2(-Math.sqrt(1 - (D*D)),D);
 		
-		double theta1_a = Math.atan(y/x) - Math.atan((L2 * Math.sin(theta2_a)) / (L1 + (L2 * Math.cos(theta2_a))));
-		double theta1_b = Math.atan(y/x) - Math.atan((L2 * Math.sin(theta2_b)) / (L1 + (L2 * Math.cos(theta2_b))));
+		double theta1_a = Math.atan2(y,x) - Math.atan2((L2 * Math.sin(theta2_a)) , (L1 + (L2 * Math.cos(theta2_a))));
+		double theta1_b = Math.atan2(y,x) - Math.atan2((L2 * Math.sin(theta2_b)) , (L1 + (L2 * Math.cos(theta2_b))));
 		
 		if(theta1_b > theta1_a)
 			return new double[]{theta1_b/CONVERT,theta2_b/CONVERT};
