@@ -9,18 +9,21 @@ public class RobotArm
 	public static final double L2 = 14.2; // cm
 	public static final double L3 = 14.7; // cm
 	public static final double CONVERT = Math.PI / 180.0;
-
+	public final boolean waitButton = false;
 	EV3MediumRegulatedMotor theta1;
 	EV3MediumRegulatedMotor theta2;
 
 	public RobotArm() {
 		theta1 = new EV3MediumRegulatedMotor(MotorPort.A);
 		theta2 = new EV3MediumRegulatedMotor(MotorPort.D);
+		theta1.resetTachoCount();
+		theta2.resetTachoCount();
 	}
 	
 	public void finish(){
 		theta1.close();
 		theta2.close();
+		System.out.println("Finished");
 		Button.waitForAnyPress();
 	}
 	
@@ -52,8 +55,8 @@ public class RobotArm
 
 	//Part 5
 	public void calculateDistance() {
-		theta1.resetTachoCount();
-		theta2.resetTachoCount();
+		//theta1.resetTachoCount();
+		//theta2.resetTachoCount();
 
 		System.out.printf("0: %d\n", theta1.getTachoCount());
 		System.out.printf("0: %d\n", theta2.getTachoCount());
@@ -115,8 +118,8 @@ public class RobotArm
 	
 	//Part 7
 	public void getMidPoints(){
-		theta1.resetTachoCount();
-		theta2.resetTachoCount();
+		//theta1.resetTachoCount();
+		//theta2.resetTachoCount();
 
 		System.out.println("-"+theta1.getTachoCount());
 		System.out.println("-"+theta2.getTachoCount());
@@ -189,23 +192,22 @@ public class RobotArm
 	//Part 8a
 	public void drawLine(double ix, double iy, double fx, double fy){
 		
-		System.out.println("start?");
-		Button.waitForAnyPress();
+		System.out.println("start line?");
+		if(waitButton)
+			Button.waitForAnyPress();
 		
-		theta1.resetTachoCount();
-		theta2.resetTachoCount();
+		
 		double[] ithetas = getAngles(ix,iy);
 		double ang1=ithetas[0];
 		double ang2=ithetas[1];
 		moveSameTime(ang1,ang2);
 		
-		double points = 10.;
+		double points = 2.;
 		double incx=(fx-ix)/points;
 		double incy=(fy-iy)/points;
 		
 		for (double n=0;n<points;n++){
 			double[] fthetas = getAngles(ix+incx*(n+1.),iy+incy*(n+1.));
-			//moveSameTime(fthetas[0]-ang1,fthetas[1]-ang2);
 			moveSameTime(fthetas[0],fthetas[1]);
 			ang1 = fthetas[0];
 			ang2 = fthetas[1];
@@ -223,15 +225,22 @@ public class RobotArm
 		drawLine(ix, iy, fx, fy);		
 	}
 	
-	public void drawArc(double x,double y,double r, double rd, double p){
+	public void drawArc(double x,double y,double r, double rd, double p, double up){
+		System.out.println("start arc?");
+		if(waitButton)
+			Button.waitForAnyPress();
 		double maxAngle=360/rd;
 
 		double initAngle=-maxAngle/2;
 		double endAngle=-initAngle;
+		if(up<0){
+			initAngle*=-1;
+			endAngle*=-1;
+		}
+		
 		
 		double maxStep = initAngle<endAngle ? p : -p;
-		
-		for (double angle = initAngle; Math.abs(angle) < Math.abs(endAngle);angle+=maxStep){
+		for (double angle = initAngle; Math.abs(angle)-1 < Math.abs(endAngle);angle+=maxStep){
 			double dx=x+r*Math.cos(angle*CONVERT);
 			double dy=y+r*Math.sin(angle*CONVERT);
 			double[] ithetas = getAngles(dx,dy);
@@ -244,10 +253,10 @@ public class RobotArm
 		
 		double relation = 1;//angle1/angle2;
 		if (relation > 4)
-			theta1.setSpeed(100);
+			theta1.setSpeed(200);
 		else
-			theta1.setSpeed((int)(25*relation));
-		theta2.setSpeed(25);
+			theta1.setSpeed((int)(30*relation));
+		theta2.setSpeed(30);
 
 		// Motors are upside-down
 		theta1.rotateTo((int) -angle1, true);
