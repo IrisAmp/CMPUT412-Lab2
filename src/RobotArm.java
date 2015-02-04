@@ -1,3 +1,4 @@
+import Jama.Matrix;
 import lejos.hardware.Button;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.port.MotorPort;
@@ -6,6 +7,7 @@ public class RobotArm
 {
 	public static final double L1 = 13.5; // cm
 	public static final double L2 = 14.2; // cm
+	public static final double L3 = 14.7; // cm
 	public static final double CONVERT = Math.PI / 180.0;
 
 	EV3MediumRegulatedMotor theta1;
@@ -259,5 +261,9 @@ public class RobotArm
 
 	}
 	
-	
+	public double[][] invertMatrix(double[][] m)
+	{
+		Matrix mI = new Matrix(m);
+		return mI.inverse().getArray();
+	}
 }
