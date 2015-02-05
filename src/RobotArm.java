@@ -6,11 +6,11 @@ import lejos.utility.Matrix;
 
 public class RobotArm 
 {
-	public static final double L1 = 13.6; // cm
-	public static final double L2 = 17.3; // cm
-	public static final double L3 = 14.7; // cm
-	public static final double Zo = 2.3; // cm
-	public static final double CONVERT = Math.PI / 180.0;
+	public static double L1 = 13.6; // cm
+	public static double L2 = 17.3; // cm
+	public static double L3 = 14.7; // cm
+	public static double Zo = 2.3; // cm
+	public static final  double CONVERT = Math.PI / 180.0;
 	public final boolean waitButton = false;
 	EV3MediumRegulatedMotor theta1;
 	EV3MediumRegulatedMotor theta2;
