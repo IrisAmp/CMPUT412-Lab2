@@ -14,17 +14,21 @@ public class RobotArm
 	public final boolean waitButton = false;
 	EV3MediumRegulatedMotor theta1;
 	EV3MediumRegulatedMotor theta2;
+	EV3MediumRegulatedMotor theta3;
 
 	public RobotArm() {
 		theta1 = new EV3MediumRegulatedMotor(MotorPort.A);
 		theta2 = new EV3MediumRegulatedMotor(MotorPort.D);
+		theta3 = new EV3MediumRegulatedMotor(MotorPort.C); // <--- Motor C
 		theta1.resetTachoCount();
 		theta2.resetTachoCount();
+		theta3.resetTachoCount();
 	}
 	
 	public void finish(){
 		theta1.close();
 		theta2.close();
+		theta3.close();
 		System.out.println("Finished");
 		Button.waitForAnyPress();
 	}
@@ -278,22 +282,57 @@ public class RobotArm
 
 	public void move3D(double x, double y, double z){
 		L2 = 6.3;
-		double[] angles = inverseNewton3(x,y,z);
-		System.out.println("a1:"+angles[0]);
-		System.out.println("a2:"+angles[1]);
-		System.out.println("a3:"+angles[2]);
+		double[] angles = initialGuess3(x,y,z);
+		System.out.println("j1:"+angles[0]);
+		System.out.println("j2:"+angles[1]);
+		System.out.println("j3:"+angles[2]);
+		
+		System.out.println("start 3DOF?");
+		if(waitButton)
+			Button.waitForAnyPress();
+		
+		theta1.setSpeed(50);
+		theta2.setSpeed(50);
+		theta3.setSpeed(50);
+
+		// Motors are upside-down
+		theta1.rotate((int) -angles[0], true);
+		theta2.rotate((int) -angles[1], false);
+		theta3.rotate((int) -angles[2], false);
+
+		while (theta1.isMoving() || theta2.isMoving() || theta3.isMoving()){
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+			}
+		}
 	}
 	
-	public double[] inverseNewton3(double x,double y,double z){
+	public double[] initialGuess3(double posX,double posY,double posZ){
+		double a1=1;
+		double a2=1;
+		double a3=1;
 		
-		double a1=1.;
-		double a2=1.;
-		double a3=1.;
+		double[] posXYZ = forwarKin3(a1,a2,a3);
+		double N=100.;
+		double difX=(posX-posXYZ[0])/N;
+		double difY=(posY-posXYZ[1])/N;
+		double difZ=(posZ-posXYZ[2])/N;
+		
+		for (int n=0;n<N;n++){
+			double[] dA=inverseNewton3(difX*n+posXYZ[0],difY*n+posXYZ[1],difZ*n+posXYZ[2],a1,a2,a3);
+			a1=dA[0]; a2=dA[1]; a3=dA[2];
+		}
+		
+		return new double[]{a1,a2,a3};
+	}
+	
+	public double[] inverseNewton3(double posX,double posY,double posZ, double a1, double a2, double a3){
 		double[][] dx = new double[][]{{a1},{a2},{a3}};
-		double[][] y_ = new double[][]{{x},{y},{z}};
+		double[][] y = new double[][]{{posX},{posY},{posZ}};
 		Matrix mdx = new Matrix(dx);
-		Matrix my_ = new Matrix(y_);
-		for (int n = 0; n<1000;n++){
+		Matrix my = new Matrix(y);
+		for (int n = 0; n<100;n++){
 			a1=mdx.get(0, 0);;
 			a2=mdx.get(1, 0);;
 			a3=mdx.get(2, 0);;
@@ -312,13 +351,13 @@ public class RobotArm
 			
 			Matrix mdf = new Matrix(df);
 			Matrix mf = new Matrix(f);
-			Matrix sub = mdx.plus(mdf.inverse().times(my_.minus(mf)));
+			Matrix sub = mdx.plus(mdf.inverse().times(my.minus(mf)));
 			mdx.plusEquals(sub.times(0.001));
 		}
 		
-		a1 = Math.asin(Math.sin(mdx.get(0, 0)*CONVERT))/CONVERT;
-		a2 = Math.asin(Math.sin(mdx.get(1, 0)*CONVERT))/CONVERT;
-		a3 = Math.asin(Math.sin(mdx.get(2, 0)*CONVERT))/CONVERT;
+		a1 = mdx.get(0, 0);
+		a2 = mdx.get(1, 0);
+		a3 = mdx.get(3, 0);
 		
 		return new double[]{a1,a2,a3};
 	}
