@@ -9,7 +9,7 @@ public class RobotArm
 	public static double L1 = 13.6; // cm
 	public static double L2 = 17.3; // cm
 	public static double L3 = 14.7; // cm
-	public static double Zo = 2.3; // cm
+	public static double Zo = 8.5; // cm
 	public static final  double CONVERT = Math.PI / 180.0;
 	public final boolean waitButton = false;
 	EV3MediumRegulatedMotor theta1;
@@ -276,20 +276,39 @@ public class RobotArm
 
 	}
 	
-	
-	
+	// so all angles are between -360 and +360
+	public double fixAngle(double angle){
+		if(angle<0){
+			while(Math.abs(angle)>180){
+				angle+=360;
+			}
+		}else{
+			while(Math.abs(angle)>180){
+				angle-=360;
+			}
+		}
+		return angle;
+	}
 	
 
 	public void move3D(double x, double y, double z){
 		L2 = 6.3;
-		double[] angles = initialGuess3(x,y,z);
-		System.out.println("j1:"+angles[0]);
-		System.out.println("j2:"+angles[1]);
-		System.out.println("j3:"+angles[2]);
 		
 		System.out.println("start 3DOF?");
 		if(waitButton)
 			Button.waitForAnyPress();
+		System.out.println("calculating...");
+		double[] angles = initialGuess3(x,y,z);
+		
+		
+		angles[0]=fixAngle(angles[0]);
+		if(angles[0]<0)
+			angles[0]+=360;//final fix because j1 cannot go to the right (physical limitation)
+		angles[1]=fixAngle(angles[1]);
+		angles[2]=fixAngle(angles[2]);
+		System.out.println("j1:"+angles[0]);
+		System.out.println("j2:"+angles[1]);
+		System.out.println("j3:"+angles[2]);
 		
 		theta1.setSpeed(50);
 		theta2.setSpeed(50);
@@ -297,7 +316,7 @@ public class RobotArm
 
 		// Motors are upside-down
 		theta1.rotate((int) -angles[0], true);
-		theta2.rotate((int) -angles[1], false);
+		theta2.rotate((int) -angles[1], true);
 		theta3.rotate((int) -angles[2], false);
 
 		while (theta1.isMoving() || theta2.isMoving() || theta3.isMoving()){
@@ -319,7 +338,7 @@ public class RobotArm
 		double difY=(posY-posXYZ[1])/N;
 		double difZ=(posZ-posXYZ[2])/N;
 		
-		for (int n=0;n<N;n++){
+		for (int n=1;n<N+1;n++){
 			double[] dA=inverseNewton3(difX*n+posXYZ[0],difY*n+posXYZ[1],difZ*n+posXYZ[2],a1,a2,a3);
 			a1=dA[0]; a2=dA[1]; a3=dA[2];
 		}
@@ -357,7 +376,7 @@ public class RobotArm
 		
 		a1 = mdx.get(0, 0);
 		a2 = mdx.get(1, 0);
-		a3 = mdx.get(3, 0);
+		a3 = mdx.get(2, 0);
 		
 		return new double[]{a1,a2,a3};
 	}
