@@ -10,8 +10,8 @@ public class RobotArm
 	public static final double L3 = 14.7; // cm
 	public static final double CONVERT = Math.PI / 180.0;
 	public final boolean waitButton = false;
-	EV3MediumRegulatedMotor theta1;
-	EV3MediumRegulatedMotor theta2;
+	private EV3MediumRegulatedMotor theta1;
+	private EV3MediumRegulatedMotor theta2;
 
 	public RobotArm() {
 		theta1 = new EV3MediumRegulatedMotor(MotorPort.A);
@@ -92,6 +92,77 @@ public class RobotArm
 		double dist = Math.hypot((yf - yi), (xf - xi));
 
 		System.out.printf("d = %f\n", dist);
+	}
+	
+	public void calculateAngle() {
+		//theta1.resetTachoCount();
+		//theta2.resetTachoCount();
+
+		System.out.printf("0: %d\n", theta1.getTachoCount());
+		System.out.printf("0: %d\n", theta2.getTachoCount());
+
+		System.out.printf("Record first...\n");
+		Button.waitForAnyPress();
+
+		int p1_1 = theta1.getTachoCount();
+		int p1_2 = theta2.getTachoCount();
+
+		System.out.printf("i_angle1: %d\n", p1_1);
+		System.out.printf("i_angle2: %d\n", p1_2);
+
+		System.out.printf("Record second...\n");
+		Button.waitForAnyPress();
+
+		int p2_1 = theta1.getTachoCount();
+		int p2_2 = theta2.getTachoCount();
+
+		System.out.printf("f_angle1: %d\n", p2_1);
+		System.out.printf("f_angle2: %d\n", p2_2);
+		
+		System.out.printf("Record second...\n");
+		Button.waitForAnyPress();
+
+		int p3_1 = theta1.getTachoCount();
+		int p3_2 = theta2.getTachoCount();
+
+		System.out.printf("f_angle1: %d\n", p3_1);
+		System.out.printf("f_angle2: %d\n", p3_2);
+
+		double p1x = (L1 * Math.cos(p1_1 * CONVERT))
+				+ (L2 * Math.cos((p1_1 * CONVERT) + (p1_2 * CONVERT)));
+		double p1y = (L1 * Math.sin(p1_1 * CONVERT))
+				+ (L2 * Math.sin((p1_1 * CONVERT) + (p1_2 * CONVERT)));
+
+		double p2x = (L1 * Math.cos(p2_1 * CONVERT))
+				+ (L2 * Math.cos((p2_1 * CONVERT) + (p2_2 * CONVERT)));
+		double p2y = (L1 * Math.sin(p2_1 * CONVERT))
+				+ (L2 * Math.sin((p2_1 * CONVERT) + (p2_2 * CONVERT)));
+
+		double p3x = (L1 * Math.cos(p3_1 * CONVERT))
+				+ (L2 * Math.cos((p3_1 * CONVERT) + (p3_2 * CONVERT)));
+		double p3y = (L1 * Math.sin(p3_1 * CONVERT))
+				+ (L2 * Math.sin((p3_1 * CONVERT) + (p3_2 * CONVERT)));
+		
+		System.out.printf( "1 x: %2.f y%2.f\n", p1x, p1y );
+		System.out.printf( "2 x: %2.f y%2.f\n", p2x, p2y );
+		System.out.printf( "3 x: %2.f y%2.f\n", p3x, p3y );
+		
+		// Find the angle between A, B, C
+		double 
+			ABx = p2x - p1x,
+			ABy = p2y - p1y,
+			BCx = p3x - p2x,
+			BCy = p3y - p2y;
+		
+		double 
+			ABdotBC = (ABx * BCx) + (ABy * BCy),
+			lenAB = Math.hypot(ABx, ABy),
+			lenBC = Math.hypot(BCx, BCy);
+			
+		
+		double angle = Math.acos(ABdotBC / (lenAB * lenBC)) / CONVERT;
+
+		System.out.printf("angle = %f deg\n", angle);
 	}
 	
 	//Part 6
