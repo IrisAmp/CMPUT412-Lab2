@@ -1,13 +1,15 @@
-import Jama.Matrix;
+
 import lejos.hardware.Button;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.port.MotorPort;
+import lejos.utility.Matrix;
 
 public class RobotArm 
 {
-	public static final double L1 = 13.5; // cm
-	public static final double L2 = 14.2; // cm
+	public static final double L1 = 13.6; // cm
+	public static final double L2 = 17.3; // cm
 	public static final double L3 = 14.7; // cm
+	public static final double Zo = 2.3; // cm
 	public static final double CONVERT = Math.PI / 180.0;
 	public final boolean waitButton = false;
 	EV3MediumRegulatedMotor theta1;
@@ -50,7 +52,7 @@ public class RobotArm
 		double y = (L1 * Math.sin(angle1)) + (L2 * Math.sin(angle1 + angle2));
 
 		System.out.printf("x = %f\n", x);
-		System.out.printf("y = %f\n", -y);
+		System.out.printf("y = %f\n", y);
 	}
 
 	//Part 5
@@ -202,7 +204,7 @@ public class RobotArm
 		double ang2=ithetas[1];
 		moveSameTime(ang1,ang2);
 		
-		double points = 2.;
+		double points = 10.;
 		double incx=(fx-ix)/points;
 		double incy=(fy-iy)/points;
 		
@@ -270,9 +272,66 @@ public class RobotArm
 
 	}
 	
-	public double[][] invertMatrix(double[][] m)
-	{
-		Matrix mI = new Matrix(m);
-		return mI.inverse().getArray();
+	
+	
+	
+
+	public void move3D(double x, double y, double z){
+		L2 = 6.3;
+		double[] angles = inverseNewton3(x,y,z);
+		System.out.println("a1:"+angles[0]);
+		System.out.println("a2:"+angles[1]);
+		System.out.println("a3:"+angles[2]);
 	}
+	
+	public double[] inverseNewton3(double x,double y,double z){
+		
+		double a1=1.;
+		double a2=1.;
+		double a3=1.;
+		double[][] dx = new double[][]{{a1},{a2},{a3}};
+		double[][] y_ = new double[][]{{x},{y},{z}};
+		Matrix mdx = new Matrix(dx);
+		Matrix my_ = new Matrix(y_);
+		for (int n = 0; n<1000;n++){
+			a1=mdx.get(0, 0);;
+			a2=mdx.get(1, 0);;
+			a3=mdx.get(2, 0);;
+			double[] cor = forwarKin3(a1,a2,a3);
+			double[] cor_1 = forwarKin3(a1+0.001,a2,a3);
+			double[] cor_2 = forwarKin3(a1,a2+0.001,a3);
+			double[] cor_3 = forwarKin3(a1,a2,a3+0.001);
+			
+			double[][] f= new double[][]{{cor[0]},{cor[1]},{cor[2]}};
+			double[][] df = new double[][]
+					{
+					{cor_1[0]-cor[0],cor_2[0]-cor[0],cor_3[0]-cor[0]},
+					{cor_1[1]-cor[1],cor_2[1]-cor[1],cor_3[1]-cor[1]},
+					{cor_1[2]-cor[2],cor_2[2]-cor[2],cor_3[2]-cor[2]}
+					};
+			
+			Matrix mdf = new Matrix(df);
+			Matrix mf = new Matrix(f);
+			Matrix sub = mdx.plus(mdf.inverse().times(my_.minus(mf)));
+			mdx.plusEquals(sub.times(0.001));
+		}
+		
+		a1 = Math.asin(Math.sin(mdx.get(0, 0)*CONVERT))/CONVERT;
+		a2 = Math.asin(Math.sin(mdx.get(1, 0)*CONVERT))/CONVERT;
+		a3 = Math.asin(Math.sin(mdx.get(2, 0)*CONVERT))/CONVERT;
+		
+		return new double[]{a1,a2,a3};
+	}
+	
+	public double[] forwarKin3(double a1, double a2, double a3){
+		a1*=CONVERT;
+		a2*=CONVERT;
+		a3*=CONVERT;
+		double x = (L1 * Math.cos(a1)) + (L2 * Math.cos(a1 + a2)) + (L3*Math.cos(a1+a2))*Math.cos(a3);
+		double y = (L1 * Math.sin(a1)) + (L2 * Math.sin(a1 + a2)) + (L3*Math.sin(a1+a2))*Math.cos(a3);
+		double z = Zo + L3*Math.sin(a3);
+		
+		return new double[]{x,y,z};
+	}
+	
 }
