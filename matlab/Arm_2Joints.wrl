@@ -1,0 +1,201 @@
+#VRML V2.0 utf8
+
+#Created with V-Realm Builder v2.0
+#Integrated Data Systems Inc.
+#www.ids-net.com
+
+
+Viewpoint {
+	position	0 10 50
+}
+DEF Base Transform {
+	translation	0 0 0
+	rotation	0 0 -1  1.5708
+	children DEF J1 Transform {
+		children [ 
+		    Shape {
+			    appearance	Appearance {
+				    material	Material {
+					    ambientIntensity	0.1
+					    diffuseColor	0.0223017 0.8 0.139417
+					    specularColor	1 1 1
+				    }
+
+			    }
+
+			    geometry	Sphere {
+				    radius	1
+			    }
+
+		    }
+
+		    DEF arm1 Transform {
+			    translation	0 0.5 0
+			    scale	1 10 1
+			    center	0 -0.5 0
+			    children Shape {
+				    appearance	Appearance {
+					    material	Material {
+						    ambientIntensity	0.1
+						    diffuseColor	0.00200167 0.0121456 0.8
+						    specularColor	1 1 1
+					    }
+
+				    }
+
+				    geometry	Cylinder {
+					    height	1
+					    radius	0.7
+					    top	TRUE
+					    bottom	TRUE
+				    }
+
+			    }
+		    }
+
+		    DEF J2 Transform {
+			    translation	0 10 0
+			    children [ 
+				Shape {
+					appearance	Appearance {
+						material	Material {
+							ambientIntensity	0.1
+							diffuseColor	0.0223017 0.8 0.139417
+							specularColor	1 1 1
+						}
+
+					}
+
+					geometry	Sphere {
+						radius	1
+					}
+
+				}
+
+				DEF arm2 Transform {
+					translation	0 0.5 0
+					scale	1 5 1
+					center	0 -0.5 0
+					children Shape {
+						appearance	Appearance {
+							material	Material {
+								ambientIntensity	0.1
+								diffuseColor	0.00200167 0.0121456 0.8
+								specularColor	1 1 1
+							}
+
+						}
+
+						geometry	Cylinder {
+							height	1
+							radius	0.7
+							top	TRUE
+							bottom	TRUE
+						}
+
+					}
+				}
+
+				DEF lapiz Transform {
+					translation	0 5 0
+					rotation	1 0 0  1.5708
+					children Shape {
+						appearance	Appearance {
+							material	Material {
+								ambientIntensity	0.1
+								diffuseColor	0.8 0.0643941 0.0488021
+							}
+
+						}
+
+						geometry	Cylinder {
+							height	2
+							radius	0.2
+						}
+
+					}
+				}
+			    ]
+		    }
+		]
+	}
+}
+DEF metric Transform {
+	translation	-25.2 50.1 0
+	rotation	1 0 0  1.5708
+	scale	5.6 5.6 5.6
+	children Shape {
+		appearance	Appearance {
+			material	Material {
+				ambientIntensity	0.1
+				diffuseColor	1 1 1
+			}
+
+			texture	ImageTexture {
+				url	"texture/cuadro.jpg"
+			}
+
+		}
+
+		geometry	ElevationGrid {
+			color	NULL
+			normal	NULL
+			texCoord	NULL
+			ccw	TRUE
+			colorPerVertex	FALSE
+			creaseAngle	0
+			normalPerVertex	TRUE
+			solid	TRUE
+			xDimension	10
+			xSpacing	1
+			zDimension	10
+			zSpacing	1
+			height	[ 0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0,
+					  0, 0, 0, 0 ]
+		}
+
+	}
+}
+DEF ref Transform {
+	translation	0 0 0
+	rotation	-1 0 0  1.5708
+	scale	2 2 2
+	children Shape {
+		appearance	Appearance {
+			material	Material {
+				ambientIntensity	0.1
+				diffuseColor	0.798731 0.0466761 0.8
+			}
+
+		}
+
+		geometry	Cylinder {
+			height	1
+			radius	0.2
+		}
+
+	}
+}
