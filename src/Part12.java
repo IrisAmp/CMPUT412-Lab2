@@ -3,8 +3,7 @@ public class Part12
 {
 	public static void main(String [] args)
 	{
-		RobotArm arm = new RobotArm();	
-		arm.move3D(5, 20, 22);
-		arm.finish();
+		RobotArm3DOF robot = new RobotArm3DOF();
+		robot.ik(-10, 25, 10);
 	}
 }
