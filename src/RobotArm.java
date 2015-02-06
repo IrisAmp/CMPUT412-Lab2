@@ -155,8 +155,8 @@ public class RobotArm
 		
 		// Find the angle between A, B, C
 		double 
-			ABx = p2x - p1x,
-			ABy = p2y - p1y,
+			ABx = p1x - p2x,
+			ABy = p1y - p2y,
 			BCx = p3x - p2x,
 			BCy = p3y - p2y;
 		
