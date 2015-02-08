@@ -1,152 +1,158 @@
-import java.util.ArrayList;
-
-import Jama.Matrix;
+import lejos.hardware.Button;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.port.MotorPort;
+import Jama.Matrix;
+
 
 
 public class RobotArm3DOF
 {
-	// DH parameters
-	public static final double alpha0 = 0;
-	public static final double a0     = 0;
-	public static final double d0     = 0;
-	public static final double alpha1 = 0;
-	public static final double a1     = 13.8; // cm
-	public static final double d1     = 0;
-	public static final double alpha2 = 90; // degrees
-	public static final double a2     = 6.3; // cm
-	public static final double d2     = 2.3; // cm
-	public static final double alpha3 = 0;
-	public static final double a3     = 14.7; // cm
-	public static final double d3     = 0;
-
-	// Actuators
+	public static final double L1 = 13.6;
+	public static final double L2 = 6.3;
+	public static final double L3 = 14.7;
+	public static final double Z0 = 2.3;
+	
+	public static final int NEWTON_ITERATIONS          = 100;
+	public static final double NEWTON_STEP             = 0.001;
+	public static final int INITIAL_GUESS_SUBDIVISIONS = 100;
+	
 	private EV3MediumRegulatedMotor theta0;
 	private EV3MediumRegulatedMotor theta1;
 	private EV3MediumRegulatedMotor theta2;
-	private ArrayList<Double> q;
-	
-	// End effectors
-	private Point ee0 = new Point(0, 0, 0);
-	private Point ee1 = new Point(0, 0, 0);
-	private Point ee2 = new Point(0, 0, 0);
-	private Point ee3 = new Point(0, 0, 0);
-	private ArrayList<Point> x;
 	
 	public RobotArm3DOF()
 	{
-		/*
+		//*
 		theta0 = new EV3MediumRegulatedMotor(MotorPort.A);
 		theta1 = new EV3MediumRegulatedMotor(MotorPort.B);
 		theta2 = new EV3MediumRegulatedMotor(MotorPort.C);
 		//*/
-		
-		// Initialize the position of the base (constant)
-		ee0.x = 0;
-		ee0.y = 0;
-		ee0.z = d0;
-		
-		
 	}
 	
-	public void ik(double x, double y, double z)
+	public double[] ik(double x, double y, double z)
 	{
-		// Reset initial position
-		resetTachos();
+		z -= Z0; // Offset for the robot's height
 		
-		// Initialize the positions of the end effectors
-		measureEffectorPos();
-		
-		
-	}
+		double[] angles = initialGuess(x, y, z);
+		double[] pos    = fk(angles[0], angles[1], angles[2]);
 
-	private void measureEffectorPos()
-	{
-		// position of ee0 is constant.
+		System.out.printf("a: %3f b:%3f c:%3f\n", (float) angles[0], (float) angles[1], (float) angles[2]);
+		System.out.printf("x: %3f y:%3f z:%3f\n", (float) pos   [0], (float) pos   [1], (float) pos   [2]);
 		
+		return angles;
 	}
-
-	private void resetTachos() 
+		
+	private double[] initialGuess(double x, double y, double z)
 	{
-		theta0.resetTachoCount();
-		theta1.resetTachoCount();
-		theta2.resetTachoCount();
-	}
-	
-	private Matrix getTransformationMatrix(double angle0, double angle1, double angle2)
-	{
-		double A = Math.cos(angle0);
-		double B = Math.sin(angle0);
-		double C = Math.cos(angle1);
-		double D = Math.sin(angle1);
-		double E = Math.cos(angle2);
-		double F = Math.sin(angle2);
-
-		// http://www.wolframalpha.com/input/?i=matrix+multiplication&a=*C.matrix+multiplication-_*Calculator.dflt-&f2=%7B%7BA*C-B*D%2C+-B*C-A*D%2C+0%2C+13.8*A%7D%2C+%7BB*C+%2B+A*D%2C+A*C+-+B*D%2C+0%2C+13.8*A%7D%2C+%7B0%2C+0%2C+1%2C+0%7D%2C+%7B0%2C+0%2C+0%2C+1%7D%7D&f=MatricesOperations.theMatrix1%5Cu005f%7B%7BA*C-B*D%2C+-B*C-A*D%2C+0%2C+13.8*A%7D%2C+%7BB*C+%2B+A*D%2C+A*C+-+B*D%2C+0%2C+13.8*A%7D%2C+%7B0%2C+0%2C+1%2C+0%7D%2C+%7B0%2C+0%2C+0%2C+1%7D%7D&f3=%7B%7BX%2C+-F%2C+0%2C+14.7*X+%2B+6.3%7D%2C+%7B0%2C+0%2C+1%2C+-2.3%7D%2C+%7BF%2C+X%2C+0%2C+14.7*F%7D%2C+%7B0%2C+0%2C+0%2C+1%7D%7D&f=MatricesOperations.theMatrix2_%7B%7BX%2C+-F%2C+0%2C+14.7*X+%2B+6.3%7D%2C+%7B0%2C+0%2C+1%2C+-2.3%7D%2C+%7BF%2C+X%2C+0%2C+14.7*F%7D%2C+%7B0%2C+0%2C+0%2C+1%7D%7D&a=*FVarOpt.1-_**-.***MatricesOperations.theMatrix3---.*--
-		double[][] t = new double[][]
+		double[] a = new double[] {1, 1, 1};
+		double[] W = fk(a[0], a[1], a[2]);
+		
+		double
+			dx = (x - W[0]) / INITIAL_GUESS_SUBDIVISIONS,
+			dy = (y - W[1]) / INITIAL_GUESS_SUBDIVISIONS,
+			dz = (z - W[2]) / INITIAL_GUESS_SUBDIVISIONS;
+		
+		for (int i = 0; i < INITIAL_GUESS_SUBDIVISIONS; i++)
 		{
-			{
-				((A * C) - (B * D)) * E,
-				-(( A * C) - (B * D)) * F,
-				-(B * C) - (A * D),
-				(a1 * A) - (d2 * (-(B * C) - (A * D))) + ((A * C) - (B * D)) * (a3 * E + a2)
-			},
-			{
-				((B * C) + (A * D)) * E,
-				-((B * C) + (A * D)) * F,
-				(A * C) - (B * D),
-				(a1 * A) - (d2 * ((A * C) - (B * D)) + (((B * C) + ( A * D)) * ((a3 * E) + a2)))
-			},
-			{
-				F,
-				E,
-				0,
-				a3 * F
-			},
-			{
-				0,
-				0,
-				0,
-				1
-			},
-		};
-		
-		return new Matrix(t);
-	}
-	
-	private Matrix getPointCol(Point p)
-	{
-		double [][] x = 
-			{
-				{
-					p.x
-				},
-				{
-					p.y
-				},
-				{
-					p.z
-				},
-				{
-					1
-				},
-			};
-		
-		return new Matrix(x);
-	}
-	
-	private static class Point
-	{
-		public double x;
-		public double y;
-		public double z;
-		
-		public Point(double x, double y, double z)
-		{
-			this.x = x;
-			this.y = y;
-			this.z = z;
+			a = inverseNewton
+				(
+					dx * i + W[0], 
+					dy * i + W[1], 
+					dz * i + W[2], 
+					a
+				);
 		}
+		
+		return a;
+	}
+
+	private double[] inverseNewton(double x, double y, double z, double[] a)
+	{
+		double[][] 
+			dx = {{a[0]}, {a[1]}, {a[2]}},
+			dy = {{x},    {y},    {z}   };
+		
+		Matrix mdx = new Matrix(dx);
+		Matrix mdy = new Matrix(dy);
+		
+		for (int i = 0; i < NEWTON_ITERATIONS; i++)
+		{
+			a[0] = dx[0][0];
+			a[1] = dx[1][0];
+			a[2] = dx[2][0];
+			
+			double[] cor  = fk(a[0],               a[1],               a[2]              );
+			double[] cor1 = fk(a[0] + NEWTON_STEP, a[1],               a[2]              );
+			double[] cor2 = fk(a[0],               a[1] + NEWTON_STEP, a[2]              );
+			double[] cor3 = fk(a[0],               a[1],               a[2] + NEWTON_STEP);
+			
+			double[][] f = 
+				{
+					{cor[0]}, 
+					{cor[1]}, 
+					{cor[2]}
+				};
+			double[][] df =
+				{
+					{cor1[0] - cor[0], cor2[0] - cor[0], cor3[0] - cor[0]},
+					{cor1[1] - cor[1], cor2[1] - cor[1], cor3[1] - cor[1]},
+					{cor1[2] - cor[2], cor2[2] - cor[2], cor3[2] - cor[2]}
+				};
+
+			Matrix mdf = new Matrix(df);
+			Matrix mf = new Matrix(f);
+			Matrix sub = mdx.plus(mdf.inverse().times(mdy.minus(mf)));
+			mdx.plusEquals(sub.times(0.001));
+		}
+		
+		return new double[]{mdx.get(0, 0) % 360, mdx.get(1, 0) % 360, mdx.get(2, 0) % 360};
+	}
+
+	private double[] fk(double a1, double a2, double a3)
+	{
+		a1 = toRad(a1);
+		a2 = toRad(a2);
+		a3 = toRad(a3);
+		
+		double
+			retX = (L1 * Math.cos(a1)) + (L2 * Math.cos(a1 + a2)) + (L3 * Math.cos(a1+a2)) * Math.cos(a3),
+			retY = (L1 * Math.sin(a1)) + (L2 * Math.sin(a1 + a2)) + (L3 * Math.sin(a1+a2)) * Math.cos(a3),
+			retZ = Z0 + L3 * Math.sin(a3);
+		
+		return new double[]{retX, retY, retZ};
+	}
+	
+	public void turnDegrees(double angle0, double angle1, double angle2) 
+	{
+		theta0.setSpeed(50);
+		theta1.setSpeed(50);
+		theta2.setSpeed(50);
+
+		// Motors are upside-down
+		theta0.rotate((int) -angle0, true);
+		theta1.rotate((int) -angle1, true);
+		theta2.rotate((int) -angle2, false);
+
+		while (theta0.isMoving() || theta1.isMoving() || theta2.isMoving())
+		{
+			try 
+			{
+				Thread.sleep(10);
+			} catch (InterruptedException e) {  }
+		}
+	}
+
+	public void finish()
+	{
+		theta0.close();
+		theta1.close();
+		theta2.close();
+		System.out.println("Finished");
+		Button.waitForAnyPress();
+	}
+	
+	private double toRad(double deg)
+	{
+		return deg * (Math.PI / 180);
 	}
 }
